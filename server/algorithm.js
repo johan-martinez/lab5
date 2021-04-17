@@ -7,37 +7,49 @@ let doBeat = true;
 var sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 async function heartBeat() {
-    query.getMyInfo();
+    await query.getMyInfo();
+    let leader = query.getLeader();
     while (doBeat && !global.myServer.isLeader) {
-        let leader = query.getLeader();
-        console.log(leader);
         try {
-            await axios.get(leader + '/algorithm/status')
+            await axios.get(leader.server + '/algorithm/status')
+            console.log('Leader OK', new Date(Date.now()));
         } catch {
-            notifyElection();
-            doBeat = false;
+            console.log('The leader is down, doing election ');
+            await notifyElection();
         }
         await sleep(Math.random() * (10 - 2) + 2)
     }
 }
 
-function notifyElection() {
+async function notifyElection() {
     let urls = query.getUrls();
     if (urls.length == 0) return
-    // stop beats
-    urls.forEach(x => axios.put(x + '/algorithm/stopBeat', {}).catch())
+    for (let i = 0; i < urls.length; i++) {
+        let url = urls[i] + '/algorithm/stopBeat';
+        try {
+            await axios.put(url, {})
+            console.log('Notify stop beats to ', urls[i])
+        } catch (error) {
+            console.log('Error notify stop beats to', urls[i])
+        }
+    }
     startAlgorithm();
 }
 
-function startAlgorithm() {
+async function startAlgorithm() {
     // do req > mi -> 2 
     let servers = query.getMajors()
     let idMajor = -1;
-    servers.forEach(x => {
-        axios.get(x.server + '/algorithm/status')
-            .then((data) => idMajor = x.id > idMajor ? x.id : idMajor)
-            .catch((err))
-    })
+    for (let i = 0; i < servers.length; i++) {
+        let url = servers[i].server + '/algorithm/status';
+        try {
+            await axios.get(url)
+            idMajor = servers[i].id > idMajor ? servers[i].id : idMajor
+            console.log('Server major response election', servers[i])
+        } catch (error) {
+            console.log('Error server major not response election', servers[i])
+        }
+    }
     if (idMajor == -1) notifyLeader()
     else {
         let newCandidate = servers.find(x => x.id == idMajor);
@@ -51,14 +63,13 @@ function notifyLeader() {
     // servidores nuevo servidor reactiven beats
     let servers = query.getUrls();
     servers.forEach(x => {
-        axios.put(x + '/algorithm/newLeader').then().catch((err))
+        axios.put(x + '/algorithm/newLeader')
+            .then((data) => console.log('Notify new leader to', x))
+            .catch((err) => console.log('Error notify new leader to', x))
     })
-
-    ///
 }
 
-
-route.put('/candidate', (req, res)=>{
+route.put('/candidate', (req, res) => {
     startAlgorithm()
     res.sendStatus(200)
 })
@@ -71,11 +82,11 @@ route.put('/stopBeat', (req, res) => {
 
 route.put('/newLeader', (req, res) => {
     doBeat = true;
+    query.getMyInfo()
     heartBeat();
-    // read db
     res.sendStatus(200);
 })
 
 route.get('/status', (req, res) => res.sendStatus(200))
 
-module.exports = {route, heartBeat};
+module.exports = { route, heartBeat };
