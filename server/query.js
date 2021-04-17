@@ -1,54 +1,39 @@
 const Server = require('./db/SeverModel')
 
-let servers = [{ server: "http://localhost:3000", isLeader: true, id: 3000 },
-{ server: "http://localhost:3001", isLeader: false, id: 3001 },
-{ server: "http://localhost:3002", isLeader: false, id: 3002 }]
-
-let id = process.env.ID;
+let id = parseInt(process.env.ID);
 
 async function getLeader() {
-    global.myServer = await Server.find({isLeader:{$eq:true}}, 'server', {}, (err, docs)=>{
-        return err ? [] : docs;
-    })
-   // return servers.find(x => x.isLeader)
+    try {
+        return await Server.findOne({ isLeader: { $eq: true } }, 'server').exec();
+    } catch (error) { return await getLeader() }
 }
 
 async function getMyInfo() {
-    global.myServer = await Server.find({id:{$eq:this.id}}, 'server', {}, (err, docs)=>{
-        return err ? [] : docs;
-    })
-
-//    global.myServer = servers.find(x => x.id == id)
+    try {
+        global.myServer = await Server.findOne({ id: { $eq: id } }).exec()
+    } catch (error) { await getMyInfo() }
 }
 
 async function getMajors() {
-    return await Server.find({id:{$eq:this.id}}, 'server', {}, (err, docs)=>{
-        return err ? [] : docs;
-    })
-
-   // return servers.filter(x => x.id > id);
+    try {
+        return await Server.find({ id: { $gt: id } }).exec()
+    } catch (error) { return await getMajors() }
 }
 
 async function getUrls() {
-    
-    await Server.find({}, 'server', {}, (err, docs)=>{
-        return err ? [] : docs;
-    })
+    try {
+        return await Server.find({}, 'server id').exec()
+    } catch (error) { return await getUrls() }
 }
 
 async function updateLeader() {
-    //let leader =  servers.find(x => x.isLeader)
-   // if(leader) leader.isLeader = false
-    //servers.find(x => x.id == id).isLeader = true;
-    let leader = getLeader();
-    if(leader){
-        await Server.updateOne({isLeader:{$eq:true}}, {isLeader:false}, (err, docs)=>{
-            return err ? [] : docs;
-        })
-    } 
-    await Server.updateOne({id:{$eq:this.id}}, {isLeader:true}, (err, docs)=>{
-        return err ? [] : docs;
-    })
+    try {
+        let leader = await getLeader()
+        if(leader && leader.id == id) return
+        await Server.updateOne({ isLeader: { $eq: true } }, { isLeader: false }).exec()
+        await Server.updateOne({ id: { $eq: id } }, { isLeader: true }).exec()
+        await getMyInfo()
+    } catch (error) { }
 }
 
-module.exports = {getLeader, getMajors, getUrls, getMyInfo, updateLeader};
+module.exports = { getLeader, getMajors, getUrls, getMyInfo, updateLeader };

@@ -1,92 +1,72 @@
-const route = require('express').Router();
 const axios = require('axios')
 const query = require('./query');
 
-let doBeat = true;
+global.doBeat = true;
 
 var sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
+// all console.log send with ws
+
 async function heartBeat() {
     await query.getMyInfo();
-    let leader = query.getLeader();
-    while (doBeat && !global.myServer.isLeader) {
-        try {
-            await axios.get(leader.server + '/algorithm/status')
+    let leader = await query.getLeader();
+    try {
+        while (doBeat && !global.myServer.isLeader) {
+            await axios.get(leader.server + '/status')
             console.log('Leader OK', new Date(Date.now()));
-        } catch {
-            console.log('The leader is down, doing election ');
-            await notifyElection();
+            await sleep(Math.random() * (10 - 5) + 5)
         }
-        await sleep(Math.random() * (10 - 2) + 2)
+    } catch {
+        console.log('The leader is down, doing election ');
+        await notifyElection();
     }
 }
 
 async function notifyElection() {
-    let urls = query.getUrls();
-    if (urls.length == 0) return
+    let urls = await query.getUrls();
     for (let i = 0; i < urls.length; i++) {
-        let url = urls[i] + '/algorithm/stopBeat';
+        let url = urls[i].server + '/stopBeat';
         try {
             await axios.put(url, {})
-            console.log('Notify stop beats to ', urls[i])
+            console.log('Notify stop beats to ', urls[i].server)
         } catch (error) {
-            console.log('Error notify stop beats to', urls[i])
+            console.log('Error notify stop beats to', urls[i].server)
         }
     }
-    startAlgorithm();
+    await startAlgorithm();
 }
 
 async function startAlgorithm() {
-    // do req > mi -> 2 
-    let servers = query.getMajors()
+    console.log('Init Election...');
+    let servers = await query.getMajors()
     let idMajor = -1;
     for (let i = 0; i < servers.length; i++) {
-        let url = servers[i].server + '/algorithm/status';
+        let url = servers[i].server + '/status';
         try {
             await axios.get(url)
             idMajor = servers[i].id > idMajor ? servers[i].id : idMajor
-            console.log('Server major response election', servers[i])
+            console.log('Server major response election', servers[i].server)
         } catch (error) {
-            console.log('Error server major not response election', servers[i])
+            console.log('Error server major not response election', servers[i].server)
         }
     }
-    if (idMajor == -1) notifyLeader()
+    if (idMajor == -1) await notifyLeader()
     else {
         let newCandidate = servers.find(x => x.id == idMajor);
-        axios.put(newCandidate.server + '/algorithm/candidate', {}).then().catch();
+        axios.put(newCandidate.server + '/candidate', {}).then().catch();
     }
 }
 
-function notifyLeader() {
+async function notifyLeader() {
     // actualiza db yo lider -- falta
-    query.updateLeader();
+    await query.updateLeader();
     // servidores nuevo servidor reactiven beats
-    let servers = query.getUrls();
+    let servers = await query.getUrls();
     servers.forEach(x => {
-        axios.put(x + '/algorithm/newLeader')
-            .then((data) => console.log('Notify new leader to', x))
-            .catch((err) => console.log('Error notify new leader to', x))
+        axios.put(x.server + '/newLeader')
+            .then((data) => console.log('Notify new leader to', x.server))
+            .catch((err) => console.log('Error notify new leader to', x.server))
     })
 }
 
-route.put('/candidate', (req, res) => {
-    startAlgorithm()
-    res.sendStatus(200)
-})
-
-
-route.put('/stopBeat', (req, res) => {
-    doBeat = false;
-    res.sendStatus(200);
-})
-
-route.put('/newLeader', (req, res) => {
-    doBeat = true;
-    query.getMyInfo()
-    heartBeat();
-    res.sendStatus(200);
-})
-
-route.get('/status', (req, res) => res.sendStatus(200))
-
-module.exports = { route, heartBeat };
+module.exports = { startAlgorithm, heartBeat };
