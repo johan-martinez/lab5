@@ -8,13 +8,9 @@ var app = express()
 app.use(cors())
 app.use(express.json())
 
-var port = process.env.PORT || 3000
+var port = process.env.PORT || 5000
 var http = require('http').Server(app);
 const io = require('socket.io')(http);
-
-
-global.servers=[{server:'http://localhost:4000',isLeader:true}
-,{server:'http://localhost:5000',isLeader:false}]
 
 const monitor = require('./monitor');
 
