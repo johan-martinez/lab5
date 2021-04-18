@@ -2,11 +2,12 @@ const express = require('express')
 const cors = require('cors')
 const path = require('path');
 const algorithm = require('./algorithm');
+const shell = require('shelljs');
 
 var app = express()
 app.use(cors())
 app.use(express.json())
-var port = process.env.PORT || 3001
+var port = process.env.PORT || 3000
 var monitorIP= process.env.monitorIP || 'http://localhost:5000'
 var http = require('http').createServer(app);
 //const io = require('socket.io')(http);
@@ -36,11 +37,19 @@ app.put('/newLeader', (req, res) => {
     res.sendStatus(200);
 })
 
+app.post('/stopInstance', (req, res) => {
+    try {
+        shell.exec(`docker stop Server${global.myServer.id}`)
+        res.sendStatus(200);
+    } catch (error) {
+        res.sendStatus(500);
+    }
+    
+})
+
 app.get('/status', (req, res) => {
     res.sendStatus(200)
 })
-
-
 
 http.listen(port, async () => {
     console.log('Client listening on port ', port);

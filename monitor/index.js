@@ -3,6 +3,7 @@ const cors = require('cors')
 const path = require('path');
 const fs = require('fs');
 const logger = require('./logger');
+const shell = require('shelljs');
 
 var app = express()
 app.use(cors())
@@ -17,6 +18,16 @@ const monitor = require('./monitor');
 app.post('/info',(req,res)=>{
     logger.info(req.body.message)
     res.sendStatus(200)
+})
+
+app.get('/newServer', async (req, res) => {
+    try{
+        let newPort = await (await monitor.getIdMajor()).id + 1;
+        shell.exec(`sh new_server.sh ${newPort}`)
+        await monitor.saveData({server: `http://127.0.0.1:${newPort}`, id: newPort});
+        res.sendStatus(200)
+    }catch{ res.sendStatus(500) }
+    
 })
 
 app.use(express.static(path.join(__dirname, 'public')))

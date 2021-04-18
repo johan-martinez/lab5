@@ -11,10 +11,23 @@ async function getUrls() {
     } catch (error) { return await getUrls() }
 }
 
+async function saveData(info){
+    try{
+        let serverModel = new Server(info)
+        await serverModel.save()
+    }catch (error) { return await saveData() }
+}
+
 async function getLeader() {
     try {
         return await Server.findOne({ isLeader: { $eq: true } }, 'server').exec();
     } catch (error) { return await getLeader() }
+}
+
+async function getIdMajor(){
+    try{
+        return await Server.findOne({}).sort('-id').exec();
+    }catch (error) { await getIdMajor() }
 }
 
 setInterval(async()=>{
@@ -44,3 +57,4 @@ setInterval(async ()=>{
     await monitoring()
 },10000)
 
+module.exports = {getIdMajor,saveData};
