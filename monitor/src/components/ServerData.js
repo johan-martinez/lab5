@@ -8,11 +8,11 @@ function ServerData (props){
                 <div className="card-body text-center">
                 <span className={(props.isLeader)?"badge bg-primary":"badge bg-secondary"}>
                     {(props.isLeader)?'LÍDER':'SERVER'}</span>
-                    <img  width="70" height="70" className="rounded mx-auto d-block" src={(props.state)?'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/512x512/server.png':'https://d1nhio0ox7pgb.cloudfront.net/_img/v_collection_png/512x512/shadow/server_error.png'}></img>
+                    <img  width="70" height="70" className="rounded mx-auto d-block" src={(props.online)?'https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/512x512/server.png':'https://d1nhio0ox7pgb.cloudfront.net/_img/v_collection_png/512x512/shadow/server_error.png'}></img>
                 </div>
                 <div className="card-footer text-center">
                     <span className={(props.online)?"badge bg-success":"badge bg-danger"}>
-                    {(props.state)?'ONLINE':'OFFLINE'}</span>
+                    {(props.online)?'ONLINE':'OFFLINE'}</span>
                 </div>
             </div>
         )

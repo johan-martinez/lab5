@@ -1,10 +1,9 @@
 const axios  = require("axios");
 const fs = require('fs');
-
 const Server = require('./db/SeverModel');
 
 var servers=[]
-var leader
+var leader={}
 
 async function getUrls() {
     try {
@@ -20,32 +19,28 @@ async function getLeader() {
 
 setInterval(async()=>{
     servers=await getUrls()
+    previusLeader=leader
     leader= await getLeader()
 },3000)
 
 var monitor=[]
 async function monitoring(){
     monitor=[]
-    servers.forEach(element => {
-        var online=false
+    servers.map((element,i) => {
         axios.get(`${element.server}/status`)
         .then((result) => {
-            online = true
             var isl=element.server==leader.server
-            console.log({server:element.server,isLeader:isl,online: online})
-            monitor.push({server:element.server,isLeader:isl,online: online})
+            monitor.push({server:element.server,isLeader:isl,online: true})
         }).catch((err) => {
-            online = false
             var isl=element.server==leader.server
-            console.log({server:element.server,isLeader:isl,online: online})
-            monitor.push({server:element.server,isLeader:isl,online: online})
+            monitor.push({server:element.server,isLeader:isl,online: false})
         })
     });
 }
 
 setInterval(async ()=>{
-    await monitoring()
     if (monitor.length!=0) 
         fs.writeFileSync('monitoring.json',JSON.stringify(monitor))
+    await monitoring()
 },10000)
 
