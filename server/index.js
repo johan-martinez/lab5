@@ -10,12 +10,25 @@ app.use(express.json())
 var port = process.env.PORT || 3000
 var monitorIP= process.env.monitorIP || 'http://localhost:5000'
 var http = require('http').createServer(app);
-//const io = require('socket.io')(http);
+const io = require('socket.io')(http);
 const db = require('./db/Connection')
-const io =require('socket.io-client')
+const ioc =require('socket.io-client')
 
-global.socket=io.io(monitorIP).connect()
+global.socket=ioc.io(monitorIP).connect()
 
+global.socket.on('logs',(data)=>{
+    io.sockets.emit('logs',data)
+})
+
+global.socket.on('servers',(data)=>{
+    io.sockets.emit('servers',data)
+})
+
+io.sockets.on('connection', (socket) => {
+    setInterval( ()=>{
+        socket.emit('data-server',global.myServer||{})
+    },1000)
+})
 
 db()
 

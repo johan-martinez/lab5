@@ -8,8 +8,30 @@ function Dasboard() {
     const [servers, setServers] = useState([{}])
     const [val, setVal]=useState(false)
     const [stop,setStop]=useState(0)
+    const [data, setData] = useState({})
+
+    const stopInstance =()=>{
+        let s=String(window.location).replace('/dashboard','/')
+        console.log(`${s}stopInstance`)
+        fetch(`${s}stopInstance`, {
+            method: 'post',
+            body: JSON.stringify({}),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then((response) => {})
+        .catch(()=>{})
+    }
 
     var socket=io('/',{autoConnect: false})
+
+    socket.on('data-server', (res)=>{
+        let event = window.event
+        if(event) event.preventDefault()
+        setData(JSON.parse(JSON.stringify(res)))
+    })
 
     socket.on('servers', (data)=>{
         let event = window.event
@@ -34,19 +56,17 @@ function Dasboard() {
         }
     },[stop])
 
-    const addServer=()=>{
-        let s=String(window.location).replace('/dashboard','/')
-        fetch(`${s}newServer`)
-        .then(()=>{
-            alert('Server creado...')
-        })
-        .catch(()=>{
-            alert('ha ocurrido un error')
-        })
-    }
 
     return(
         <div>
+            <div className="text-center">
+                <h1 className="display-2">ID: <span className="badge bg-secondary">
+                    {data.id}</span></h1>
+                <h1><span className={(data.isLeader)?"badge bg-primary":"badge bg-secondary"}>
+                {(data.isLeader)?'LÍDER':'SERVER'}</span></h1>
+                {data.isLeader&&<button className="btn btn-danger" onClick={stopInstance}>DENTENER</button>}
+            </div>
+            
             <div class="card mt-5" >
                 <div class="card-header text-center">
                     <h1>LÍDER</h1>
@@ -70,8 +90,6 @@ function Dasboard() {
                                 online={(element.online)?element.online:false}
                             />)
                         })}
-                        <button className='ml-2 btn btn-primary'
-                        onClick={addServer}><h1 class="display-1">+</h1></button>
                     </div>
                 </div><br/>
             </div>

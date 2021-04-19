@@ -1,1 +1,1 @@
-[{"server":"http://127.0.0.1:3002","isLeader":false,"online":false},{"server":"http://127.0.0.1:3001","isLeader":true,"online":false},{"server":"http://127.0.0.1:3000","isLeader":false,"online":false}]
+[{"server":"http://127.0.0.1:3002","isLeader":false,"online":false},{"server":"http://127.0.0.1:3001","isLeader":true,"online":false},{"server":"http://127.0.0.1:3000","isLeader":false,"online":true}]
