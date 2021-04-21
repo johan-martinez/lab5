@@ -8,7 +8,6 @@ import {
 
 import Navbar from './Navbar'
 import Dashboard from './Dashboard'
-import Log from './Log'
 
 function App() {
     
@@ -18,12 +17,6 @@ function App() {
                 <Navbar></Navbar>
                 <br></br>
                 <Switch>
-                    <Route path="/dashboard">
-                        <Dashboard/>
-                    </Route>
-                    <Route path="/logs">
-                        <Log/>
-                    </Route>
                     <Route  path="/">
                         <Dashboard></Dashboard>
                     </Route>

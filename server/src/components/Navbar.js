@@ -11,12 +11,6 @@ function Navbar() {
                         HOME
                     </Link>
                 </li>
-                <li  className="nav-item">
-                    <Link to="/dashboard" className="nav-link active">DASHBOARD</Link>
-                </li>
-                <li className="nav-item">
-                    <Link to="/logs" className="nav-link active">LOGS</Link>
-                </li>
                 
             </ul>
     )

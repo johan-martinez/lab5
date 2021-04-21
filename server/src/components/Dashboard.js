@@ -1,14 +1,11 @@
 import React,{useState,useEffect}  from 'react';
 import io from 'socket.io-client';
-import ServerData from './ServerData'
 
 function Dasboard() {
 
-    const [leader,setLeader]=useState({})
-    const [servers, setServers] = useState([{}])
     const [val, setVal]=useState(false)
-    const [stop,setStop]=useState(0)
     const [data, setData] = useState({})
+    const [lines, setLines] = useState([])
 
     const stopInstance =()=>{
         let s=String(window.location).replace('/dashboard','/')
@@ -33,20 +30,10 @@ function Dasboard() {
         setData(JSON.parse(JSON.stringify(res)))
     })
 
-    socket.on('servers', (data)=>{
+    socket.on('logs',(data)=>{
         let event = window.event
         if(event) event.preventDefault()
-        var temp=JSON.parse(JSON.stringify(data))
-        var s=[]
-        for (let i = 0; i < temp.length; i++) {
-            let element = temp[i];
-            if (element.isLeader==true) {
-                setLeader(element)
-            }else{
-                s.push({server:element.server,isLeader:element.isLeader,online:element.online})
-            }
-        }
-        setServers(s)
+        setLines(String(data).split('\n'))
     })
 
     useEffect(()=>{
@@ -69,30 +56,15 @@ function Dasboard() {
             
             <div class="card mt-5" >
                 <div class="card-header text-center">
-                    <h1>LÍDER</h1>
+                    <h1>LOGS</h1>
                 </div>
-                <div className='card-body text-center'>
-                    {leader &&< ServerData 
-                        server={(leader.server)?leader.server:''} 
-                        isLeader={(leader.isLeader)?leader.isLeader:true} 
-                        online={(leader.online)?leader.online:false}
-                    />}
-                </div><br/>
-                <div class="card-header text-center">
-                    <h1>SERVERS</h1>
+                <div id="log" className='h-50 d-inline-block overflow-auto'>
+                    {lines.slice(0).reverse().map(element=>{
+                        return <p>{element}</p>
+                    })}
                 </div>
-                <div className='card-body text-center'>
-                    <div className="row row-cols-5">
-                        {servers.map((element)=>{
-                            return(< ServerData 
-                                server={(element.server)?element.server:''} 
-                                isLeader={(element.isLeader)?element.isLeader:false} 
-                                online={(element.online)?element.online:false}
-                            />)
-                        })}
-                    </div>
-                </div><br/>
             </div>
+        
         </div>
     )
 }
