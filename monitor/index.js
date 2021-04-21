@@ -18,10 +18,11 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.post('/newServer', async (req, res) => {
     try{
+        console.log('entra')
         let newPort = await query.getIdMajor()
         newPort = newPort ? newPort.id + 1 : 3000;
         shell.exec(`sh new_server.sh ${newPort}`)
-        await query.saveData({server: `http://127.0.0.1:${newPort}`, id: newPort});
+        await query.saveData({server: `http://127.0.0.1:${newPort}`, id: newPort, isLeader: false});
         sockets.addServer(`http://127.0.0.1:${newPort}`)
         res.sendStatus(200)
     } catch{ res.sendStatus(500) }  

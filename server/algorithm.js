@@ -14,7 +14,7 @@ async function heartBeat() {
     try {
         while (doBeat && !global.myServer.isLeader) {
             await axios.get(leader.server + '/status')
-            let log = `[INFO] ${new Date(Date.now()).toISOString()} GET ${leader.server} Leader status OK\n`;
+            let log = `[INFO] ${new Date(Date.now()).toISOString()} [Request]: GET ${leader.server} [Response]: Leader OK\n`;
             fs.appendFileSync('./logs/access.log', log.toString())
             await sleep(Math.random() * 5 + 5)
         }
