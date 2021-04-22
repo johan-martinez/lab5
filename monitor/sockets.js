@@ -1,9 +1,10 @@
 const io = require("socket.io-client");
 const logger = require('./logger');
+const shell = require('shelljs');
 
 global.monitoring = {}
 
-function init(urls){
+function init(urls) {
     urls.forEach(x => addServer(x.server));
 }
 
@@ -20,6 +21,9 @@ function addServer(url_server){
     socket.on('disconnect', () => {
         monitoring[url_server].online = false
         monitoring[url_server].isLeader = false
+    })
+    socket.on('stop', data => {
+        shell.exec(`docker stop Server${String(data)}`)       
     });
 }
 

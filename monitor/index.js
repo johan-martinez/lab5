@@ -17,13 +17,12 @@ app.use(cors())
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.post('/newServer', async (req, res) => {
-    try{
-        console.log('entra')
+    try {
         let newPort = await query.getIdMajor()
-        newPort = newPort ? newPort.id + 1 : 3000;
+        newPort = newPort ? newPort.id + 1 : 3001;
         shell.exec(`sh new_server.sh ${newPort}`)
-        await query.saveData({server: `http://127.0.0.1:${newPort}`, id: newPort, isLeader: false});
-        sockets.addServer(`http://127.0.0.1:${newPort}`)
+        await query.saveData({server: `http://172.17.0.1:${newPort}`, id: newPort, isLeader: false});
+        sockets.addServer(`http://172.17.0.1:${newPort}`)
         res.sendStatus(200)
     } catch{ res.sendStatus(500) }  
 })

@@ -49,7 +49,7 @@ app.put('/newLeader', (req, res) => {
 
 app.post('/stopInstance', (req, res) => {
     try {
-        shell.exec(`docker stop Server${global.myServer.id}`)
+        socket.emit('stop', global.myServer.id);
         res.sendStatus(200);
     } catch (error) { res.sendStatus(500); }
 })

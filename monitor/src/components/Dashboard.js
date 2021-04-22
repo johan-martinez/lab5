@@ -36,7 +36,7 @@ function Dasboard() {
 
     const addServer=()=>{
         let s=String(window.location).replace('/dashboard','/')
-        fetch(`${s}newServer`)
+        fetch(`${s}newServer`, {method: 'POST'})
         .then(()=>{
             alert('Server creado...')
         })
